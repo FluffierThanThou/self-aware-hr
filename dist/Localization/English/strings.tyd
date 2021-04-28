@@ -1,0 +1,64 @@
+﻿# mod description
+# note that this appears to be overridden by meta.tyd's description.
+modDesc                     "Adds awareness of assigned projects to leaders' HR decisions,
+allowing them to make smarter decisions about hiring (and optionally firing) team members."
+
+# main mod toggle and explanation
+selfAwareHRLabel            "Self-Aware HR"
+selfAwareHRTip              "Self-Aware HR"
+selfAwareHRDesc             "Allows team leaders capable of HR tasks to continuously optimize the team for it's assigned task(s) by hiring and drawing employees with required skills from different teams, and firing or releasing members with unnecessary skills.
+
+By default, team leaders will add new employees with the skills required to complete the teams assigned tasks by adding team members who are not currently assigned to a team, or hiring new employees if no unassigned employeees are available. The maximum team size is restricted to the number of desks available in rooms assigned to the team.
+When employees become redundant, they will be released from the team, and become idle until assigned to a different team. Optimization is automatically performed once per day, or can be triggered manually.
+
+You can change the conditions and restrictions for drawing, releasing, hiring and firing employees using the below settings."
+
+autoSpecsLabel              "Enable"
+autoSpecsTip                "Toggle self-aware HR on and off. Does what you'd expect it to do."
+
+
+drawFromTeamsLabel          "Draw from"
+drawFromTeamsTip            "The team leader can draw idle employees with required skills from the selected teams."
+
+
+onlyDrawIfSpaceLabel        "Require desks"
+onlyDrawIfSpaceTip          "Restricts leaders to hiring or drawing new employees only when there are available desks in rooms assigned to this team.
+
+Does not take into account any other teams that may be assigned to the same rooms, or rooms that are open to all teams. You may want to disable this if you use common or shared office spaces. "
+
+
+onlyDrawIfIdleLabel           "Only idle"
+onlyDrawIfIdleTip             "Restricts leaders from reassigning employees that are currently busy.
+
+Allowing team leaders to draw busy employees effectively gives this team priority over the team(s) it is drawing from. It's a good idea to allow this when drawing from a team with less important tasks."
+
+
+releaseToTeamLabel          "Release to"
+releaseToTeamTip            "The team leader can re-assign employees with unnecessary skills into the selected team.
+
+Using a talent pool team with low priority tasks is a good way to keep talent employed, while also keeping them busy."
+
+
+fireWhenRedundantLabel      "Fire"
+fireWhenRedundantTip        "Fire employees when they become redundant.
+
+Embrace the ruthless business person inside of you, and treat you employees like the interchangeable machines that they are.
+
+Cheaper short term, may lead to knowledge gaps and reputation loss long term."
+
+
+# optimize now! button
+triggerOptimizationLabel    "Optimize now!"
+triggerOptimizationTip      "Manually trigger optimization immediately."
+
+
+# automation log messages
+logHiredWithSkill   "{0} hired {1} new employee(s) with {2} star(s) in {3} for {4}, spending {5}."
+logDrawnWithSkill   "{0} drew {1} employee(s) with {2} star(s) in {3} from {4} into {5}."
+logFired            "{0} fired {2} employee(s) from {3} because their skills were no longer required."
+logReleased         "{0} released {2} employee(s) from {3} into {4} because their skills were no longer required."
+
+
+# warning messages
+warnNoSpace         "{0} wants to add {1} employees to {2}, but there are no desks available."
+warnNoApplicants    "{0} wants to add {1} employees to {2}, but there are no available employees with the {3} skill."

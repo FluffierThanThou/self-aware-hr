@@ -1,0 +1,6 @@
+Name        "Self Aware HR"
+Author      Fluffy
+Description "Adds self-awareness to HR decisions;
+
+            - hire team members with skills required for completing the currently assigned project(s).
+            - fire or deassign team members with skills not required for completing the currently assigned project(s)."
