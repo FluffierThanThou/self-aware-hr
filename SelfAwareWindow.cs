@@ -2,6 +2,7 @@
 // SelfAwareHR/SelfAwareHR/SkillBasedHRBehaviour.cs
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,19 +39,15 @@ namespace SelfAwareHR
         private Team[]      _teams;
         private Button      _triggerOptimizationButton;
 
-        protected SelfAwareInstance[] Settings;
-
         protected Team[] Teams
         {
             get => _teams;
-            set
-            {
-                _teams   = value ?? new Team[0];
-                Settings = _teams.Select(team => team.SelfAwareHRSettings()).ToArray();
-            }
+            set => _teams = value ?? new Team[0];
         }
 
-        public Team[] TeamsToDrawFrom => Settings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToArray();
+        public List<SelfAwareHR> Settings => Teams?.Select(team => SelfAwareHR.For(team)).ToList();
+
+        public List<Team> TeamsToDrawFrom => Settings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToList();
 
         public Team TeamToReleaseTo => Settings.SelectNotNull(hr => hr.TeamToReleaseTo).Mode();
 
@@ -103,7 +100,7 @@ namespace SelfAwareHR
         public void UpdateLabels()
         {
             // update button labels with team names
-            _drawFromTeamsButton.SetLabel(TeamsToDrawFrom?.GetListAbbrev("Team", team => team.Name));
+            _drawFromTeamsButton.SetLabel(TeamsToDrawFrom?.ToArray().GetListAbbrev("Team", team => team.Name));
             _releaseToTeamButton.SetLabel(TeamToReleaseTo?.Name ?? "None");
         }
 
@@ -131,7 +128,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).TeamToReleaseTo = teamToReleaseTo;
+                SelfAwareHR.For(team).TeamToReleaseTo = teamToReleaseTo;
             }
 
             UpdateLabels();
@@ -150,7 +147,7 @@ namespace SelfAwareHR
             var teamsToDrawFrom = selectedTeams.Select(GameSettings.GetTeam).ToList();
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).TeamsToDrawFrom = teamsToDrawFrom;
+                SelfAwareHR.For(team).TeamsToDrawFrom = teamsToDrawFrom;
             }
 
             UpdateLabels();
@@ -165,7 +162,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).Active = value;
+                SelfAwareHR.For(team).Active = value;
             }
         }
 
@@ -298,7 +295,7 @@ namespace SelfAwareHR
         {
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).Optimize();
+                SelfAwareHR.For(team).Optimize();
             }
         }
 
@@ -311,7 +308,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).FireWhenRedundant = value;
+                SelfAwareHR.For(team).FireWhenRedundant = value;
             }
         }
 
@@ -324,7 +321,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).OnlyDrawIdle = value;
+                SelfAwareHR.For(team).OnlyDrawIdle = value;
             }
         }
 
@@ -337,7 +334,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).OnlyDrawIfSpace = value;
+                SelfAwareHR.For(team).OnlyDrawIfSpace = value;
             }
         }
 

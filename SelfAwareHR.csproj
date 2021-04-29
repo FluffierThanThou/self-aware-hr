@@ -82,6 +82,7 @@
     <Compile Include="SelfAwareWindow.cs" />
     <Compile Include="SelfAwareHR.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Sentinel.cs" />
     <Compile Include="UIHelpers.cs" />
     <Compile Include="HarmonyPatches\AutomationWindow_Initialize.cs" />
   </ItemGroup>
