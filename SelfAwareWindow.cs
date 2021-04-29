@@ -24,7 +24,7 @@ namespace SelfAwareHR
         private Text   _drawFromTeamsLabel;
         private Text   _fireWhenRedundantLabel;
         private Toggle _fireWhenRedundantToggle;
-        private bool   _initializing;
+        private bool   _ignoreUpdates;
         private Text   _onlyDrawIfIdleLabel;
         private Toggle _onlyDrawIfIdleToggle;
         private Text   _onlyDrawIfSpaceLabel;
@@ -75,12 +75,13 @@ namespace SelfAwareHR
 
         public void UpdateControls()
         {
-            _initializing = true;
-            Teams         = AutomationWindow.Teams;
+            _ignoreUpdates = true;
+            Teams          = AutomationWindow.Teams;
             UpdateStarCounter();
             UpdateToggles();
             UpdateLabels();
-            _initializing = false;
+            _ignoreUpdates = false;
+            _dirty         = false;
         }
 
         private void UpdateStarCounter()
@@ -158,13 +159,15 @@ namespace SelfAwareHR
 
         public void OnAutoSpecsChanged(bool value)
         {
-            if (_initializing)
+            Log.DebugUpdates($"updating active [{value}], init [{_ignoreUpdates}]");
+            if (_ignoreUpdates)
             {
                 return;
             }
 
             foreach (var team in Teams)
             {
+                Log.DebugUpdates($"setting active [{value}] for {team.Name}");
                 SelfAwareHR.For(team).Active = value;
             }
         }
@@ -199,9 +202,10 @@ namespace SelfAwareHR
                 return;
             }
 
+            _ignoreUpdates = true;
+
             // create new UI elements
             _selfAwareHRLabel           = CreateLocalizedText("selfAwareHR");
-            _selfAwareHRLabel.fontSize  = 18;
             _selfAwareHRLabel.fontStyle = FontStyle.Bold;
             _autoSpecsLabel             = CreateLocalizedText("autoSpecs");
             _autoSpecsToggle            = CreateToggle(OnAutoSpecsChanged);
@@ -217,7 +221,7 @@ namespace SelfAwareHR
             _fireWhenRedundantToggle    = CreateToggle(OnFireWhenRedundantChange);
             _triggerOptimizationButton = CreateButton(OnTriggerOptimizationButtonClick,
                                                       "triggerOptimizationLabel".Loc(),
-                                                      "triggerOptimizationDesc".Loc());
+                                                      "triggerOptimizationTip".Loc());
 
             // attach elements to HR window
             // find the HR window panel to append to
@@ -234,9 +238,9 @@ namespace SelfAwareHR
             AppendLine(hrPanel, _selfAwareHRLabel, level3);
             AppendLine(hrPanel, _autoSpecsLabel, _autoSpecsToggle);
             AppendLine(hrPanel, _drawFromTeamsLabel, _drawFromTeamsButton);
+            AppendLine(hrPanel, _releaseToTeamLabel, _releaseToTeamButton);
             AppendLine(hrPanel, _onlyDrawIfSpaceLabel, _onlyDrawIfSpaceToggle);
             AppendLine(hrPanel, _onlyDrawIfIdleLabel, _onlyDrawIfIdleToggle);
-            AppendLine(hrPanel, _releaseToTeamLabel, _releaseToTeamButton);
             AppendLine(hrPanel, _fireWhenRedundantLabel, _fireWhenRedundantToggle);
             // adding an empty text element, because of the above mentioned two-column layout
             AppendLine(hrPanel, CreateText(""), _triggerOptimizationButton);
@@ -255,6 +259,8 @@ namespace SelfAwareHR
             // to changes outside our control. I was somewhat surprised that the game 
             // also uses an Update() hook to continuously update certain dynamic UI elements.
             sentinel.onUpdate += CheckDirty;
+
+            _ignoreUpdates = false;
         }
 
         public void SetDirty()
@@ -276,19 +282,28 @@ namespace SelfAwareHR
         // - Adding/removing rooms/desks
         public void CheckDirty()
         {
+            if (!enabled)
+            {
+                return;
+            }
+
+            if (_dirty)
+            {
+                UpdateControls();
+                return;
+            }
+
+            if (!Teams.SequenceEqual(AutomationWindow.Teams))
+            {
+                UpdateControls();
+                return;
+            }
+
             var level = Teams?.MaxSafeInt(team => team.GetHRLevel()) ?? 0;
             if (_prevHRLevel != level)
             {
                 UpdateStarCounter();
             }
-
-            if (!_dirty || !enabled)
-            {
-                return;
-            }
-
-            UpdateControls();
-            _dirty = false;
         }
 
         public void OnTriggerOptimizationButtonClick()
@@ -301,7 +316,7 @@ namespace SelfAwareHR
 
         public void OnFireWhenRedundantChange(bool value)
         {
-            if (_initializing)
+            if (_ignoreUpdates)
             {
                 return;
             }
@@ -314,7 +329,7 @@ namespace SelfAwareHR
 
         public void OnOnlyDrawIfIdleChanged(bool value)
         {
-            if (_initializing)
+            if (_ignoreUpdates)
             {
                 return;
             }
@@ -327,7 +342,7 @@ namespace SelfAwareHR
 
         public void OnOnlyDrawIfSpaceChanged(bool value)
         {
-            if (_initializing)
+            if (_ignoreUpdates)
             {
                 return;
             }

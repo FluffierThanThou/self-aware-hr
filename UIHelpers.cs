@@ -1,7 +1,6 @@
 // Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/UIHelpers.cs
 
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -35,15 +34,15 @@ namespace SelfAwareHR
             }
             else
             {
-                tt.ToolTipValue = tip;
+                tt.ToolTipValue       = tip;
                 tt.TooltipDescription = desc;
             }
         }
 
         public static Text CreateLocalizedText(string key,
                                                string labelSuffix = "Label",
-                                               string tipSuffix = "Tip",
-                                               string descSuffix = "Desc")
+                                               string tipSuffix   = "Tip",
+                                               string descSuffix  = "Desc")
         {
             if (!key.TryLoc(out var label))
             {
@@ -81,13 +80,14 @@ namespace SelfAwareHR
             text.text = label;
         }
 
-        public static Toggle CreateToggle(Action<bool> onChange,
-                                          bool value = false,
-                                          string label = "",
-                                          string tip = "",
-                                          string desc = "")
+        public static Toggle CreateToggle(UnityAction<bool> onChange,
+                                          bool              value = false,
+                                          string            label = "",
+                                          string            tip   = "",
+                                          string            desc  = "")
         {
             var toggle = WindowManager.SpawnCheckbox();
+            toggle.onValueChanged.AddListener(onChange);
             toggle.isOn = value;
             toggle.SetLabel(label);
 
@@ -101,8 +101,8 @@ namespace SelfAwareHR
 
         public static void AppendLine(RectTransform parent, params Component[] elements)
         {
-            var width = (int)parent.rect.width / elements.Length;
-            var y = (int)parent.rect.yMax;
+            var width = (int) parent.rect.width / elements.Length;
+            var y     = (int) parent.rect.yMax;
             for (var i = 0; i < elements.Length; i++)
             {
                 var rect = new Rect(i * width, y, width, LINE_HEIGHT);
