@@ -78,11 +78,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SelfAwareHR.cs" />
+    <Compile Include="Mod.cs" />
     <Compile Include="SelfAwareWindow.cs" />
-    <Compile Include="SelfAwareInstance.cs" />
+    <Compile Include="SelfAwareHR.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Sentinel.cs" />
     <Compile Include="UIHelpers.cs" />
     <Compile Include="HarmonyPatches\AutomationWindow_Initialize.cs" />
   </ItemGroup>

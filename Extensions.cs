@@ -1,19 +1,18 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/Extensions.cs
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Console = DevConsole.Console;
-using Object = UnityEngine.Object;
+using DevConsole;
+using UnityEngine;
 
 namespace SelfAwareHR
 {
     public static class Extensions
     {
-        public static SelfAwareInstance SelfAwareHRSettings(this Team team)
+        public static SelfAwareHR SelfAwareHR(this Team team)
         {
-            return SelfAwareInstance.For(team);
+            return global::SelfAwareHR.SelfAwareHR.For(team);
         }
 
         public static void Destroy(this Object obj)
@@ -22,16 +21,6 @@ namespace SelfAwareHR
             {
                 Object.Destroy(obj);
             }
-        }
-
-        public static T MaxBy<T>(this IEnumerable<T> list, Func<T, T, int> compareFunc)
-        {
-            if (list.IsNullOrEmpty())
-            {
-                return default;
-            }
-
-            return list.Aggregate((max, cur) => compareFunc(cur, max) < 0 ? cur : max);
         }
 
         public static T Mode<T>(this IEnumerable<T> list, T defaultValue = default)
