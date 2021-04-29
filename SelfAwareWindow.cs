@@ -1,5 +1,5 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
-// SelfAwareHR/SelfAwareHR/SkillBasedHRBehaviour.cs
+// SelfAwareHR/SelfAwareWindow.cs
 
 using System;
 using System.Linq;
@@ -38,21 +38,21 @@ namespace SelfAwareHR
         private Team[]      _teams;
         private Button      _triggerOptimizationButton;
 
-        protected SelfAwareInstance[] Settings;
+        protected SelfAwareHR[] TeamSettings;
 
         protected Team[] Teams
         {
             get => _teams;
             set
             {
-                _teams   = value ?? new Team[0];
-                Settings = _teams.Select(team => team.SelfAwareHRSettings()).ToArray();
+                _teams       = value ?? new Team[0];
+                TeamSettings = _teams.Select(team => SelfAwareHR.For(team)).ToArray();
             }
         }
 
-        public Team[] TeamsToDrawFrom => Settings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToArray();
+        public Team[] TeamsToDrawFrom => TeamSettings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToArray();
 
-        public Team TeamToReleaseTo => Settings.SelectNotNull(hr => hr.TeamToReleaseTo).Mode();
+        public Team TeamToReleaseTo => TeamSettings.SelectNotNull(hr => hr.TeamToReleaseTo).Mode();
 
         // if I understand correctly, this causes selected teams to be on top of the list next time? 
         public string Type => "SelfAwareHR";
@@ -94,10 +94,10 @@ namespace SelfAwareHR
         public void UpdateToggles()
         {
             // todo: is there a 'mixed' toggle state?
-            _autoSpecsToggle.isOn         = Settings.Mode(hr => hr.Active);
-            _onlyDrawIfIdleToggle.isOn    = Settings.Mode(hr => hr.OnlyDrawIdle);
-            _onlyDrawIfSpaceToggle.isOn   = Settings.Mode(hr => hr.OnlyDrawIfSpace);
-            _fireWhenRedundantToggle.isOn = Settings.Mode(hr => hr.FireWhenRedundant);
+            _autoSpecsToggle.isOn         = TeamSettings.Mode(hr => hr.Active);
+            _onlyDrawIfIdleToggle.isOn    = TeamSettings.Mode(hr => hr.OnlyDrawIdle);
+            _onlyDrawIfSpaceToggle.isOn   = TeamSettings.Mode(hr => hr.OnlyDrawIfSpace);
+            _fireWhenRedundantToggle.isOn = TeamSettings.Mode(hr => hr.FireWhenRedundant);
         }
 
         public void UpdateLabels()
@@ -131,7 +131,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).TeamToReleaseTo = teamToReleaseTo;
+                SelfAwareHR.For(team).TeamToReleaseTo = teamToReleaseTo;
             }
 
             UpdateLabels();
@@ -150,7 +150,7 @@ namespace SelfAwareHR
             var teamsToDrawFrom = selectedTeams.Select(GameSettings.GetTeam).ToList();
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).TeamsToDrawFrom = teamsToDrawFrom;
+                SelfAwareHR.For(team).TeamsToDrawFrom = teamsToDrawFrom;
             }
 
             UpdateLabels();
@@ -165,7 +165,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).Active = value;
+                SelfAwareHR.For(team).Active = value;
             }
         }
 
@@ -201,7 +201,6 @@ namespace SelfAwareHR
 
             // create new UI elements
             _selfAwareHRLabel           = CreateLocalizedText("selfAwareHR");
-            _selfAwareHRLabel.fontSize  = 18;
             _selfAwareHRLabel.fontStyle = FontStyle.Bold;
             _autoSpecsLabel             = CreateLocalizedText("autoSpecs");
             _autoSpecsToggle            = CreateToggle(OnAutoSpecsChanged);
@@ -228,7 +227,7 @@ namespace SelfAwareHR
             _starCounter = level3.GetComponentInChildren<StarCounter>();
 
             // start adding our custom stuff
-            // Note that "AppendLine" appears to be a bit of a misnomer, as the panel seems to
+            // Note that "AppendLine" appears to have been a bit of a misnomer, as the panel seems to
             // force a two-column layout regardless of the positions and sizes we set.
             // TODO: try to figure if and how I can manipulate that, and whether I even want to.
             AppendLine(hrPanel, _selfAwareHRLabel, level3);
@@ -241,23 +240,20 @@ namespace SelfAwareHR
             // adding an empty text element, because of the above mentioned two-column layout
             AppendLine(hrPanel, CreateText(""), _triggerOptimizationButton);
 
-            // add a sentinel to the hrPanel to get enabled/disabled notifications
-            var sentinel = hrPanel.gameObject.AddComponent<Sentinel>();
-
-            // we can't do our (re-)initialization on enable, because the components
-            // are activated _before_ the teams are set. Instead, we'll use this trigger
-            // to set a flag, and do our init on the next update.
-            // Technically, that means we may have a frame with incorrect information,
-            // but nobody is going to notice that.
-            sentinel.onEnable += SetDirty;
-
-            // it turns out that we also do actually need an on-update trigger to react
-            // to changes outside our control. I was somewhat surprised that the game 
-            // also uses an Update() hook to continuously update certain dynamic UI elements.
-            sentinel.onUpdate += CheckDirty;
+            // add this behaviour to the panel to get unity lifecycle events
+            transform.SetParent(hrPanel);
 
             // profit!
             _extraFieldsAdded = true;
+        }
+
+        // we can't do our (re-)initialization on enable, because the components
+        // are activated _before_ the teams are set. Instead, we'll use this trigger
+        // to set a flag, and do our init on the next update.
+        // If I've got my timings right, that should work out just fine.
+        public void OnEnable()
+        {
+            SetDirty();
         }
 
         public void SetDirty()
@@ -265,8 +261,10 @@ namespace SelfAwareHR
             _dirty = true;
         }
 
-        // called every update through our sentinel object, we need to reinitialize
-        // our data for different teams whenever the window is (re-)opened, but also
+        // it turns out that we also do actually need an on-update trigger to react
+        // to changes outside our control. I was somewhat surprised that the game 
+        // also uses an Update() hook to continuously update certain dynamic UI elements.
+        // we need to reinitialize our data for different teams whenever the window is (re-)opened, but also
         // react to some changes that affect us and may have happened outside our 
         // control;
         // 
@@ -277,6 +275,12 @@ namespace SelfAwareHR
         // - Adding/removing employees
         // - Employees gaining skills
         // - Adding/removing rooms/desks
+        public void Update()
+        {
+            CheckDirty();
+        }
+
+        // called every update, keep it light.
         public void CheckDirty()
         {
             var level = Teams?.MaxSafeInt(team => team.GetHRLevel()) ?? 0;
@@ -298,7 +302,7 @@ namespace SelfAwareHR
         {
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).Optimize();
+                SelfAwareHR.For(team).Optimize();
             }
         }
 
@@ -311,7 +315,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).FireWhenRedundant = value;
+                SelfAwareHR.For(team).FireWhenRedundant = value;
             }
         }
 
@@ -324,7 +328,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).OnlyDrawIdle = value;
+                SelfAwareHR.For(team).OnlyDrawIdle = value;
             }
         }
 
@@ -337,7 +341,7 @@ namespace SelfAwareHR
 
             foreach (var team in Teams)
             {
-                SelfAwareInstance.For(team).OnlyDrawIfSpace = value;
+                SelfAwareHR.For(team).OnlyDrawIfSpace = value;
             }
         }
 
