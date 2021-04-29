@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DevConsole;
+using UnityEngine;
 
 namespace SelfAwareHR
 {
@@ -16,6 +17,7 @@ namespace SelfAwareHR
 
         public override WriteDictionary Serialize(GameReader.LoadMode mode)
         {
+            Console.Log("serializing self-aware HR mod data");
             var save = new WriteDictionary("Fluffy.SelfAwareHR");
             save["teams"] = SelfAwareHR.Serialize();
             return save;
@@ -23,6 +25,7 @@ namespace SelfAwareHR
 
         public override void Deserialize(WriteDictionary data, GameReader.LoadMode mode)
         {
+            Console.Log("de-serializing self-aware HR mod data");
             var teams = data.Get<WriteDictionary[]>("teams");
             SelfAwareHR.Deserialize(teams);
         }

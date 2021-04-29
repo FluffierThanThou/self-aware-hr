@@ -99,12 +99,14 @@ namespace SelfAwareHR
 
         internal static WriteDictionary[] Serialize()
         {
+            Console.Log("serializing self-aware HR data");
             return Settings.Values.Select(instance => instance.SerializeThis(GameReader.NewLoadMode.Any, false))
                            .ToArray();
         }
 
         internal static void Deserialize(WriteDictionary[] data)
         {
+            Console.Log("deserializing self-aware HR data");
             foreach (var datum in data)
             {
                 try

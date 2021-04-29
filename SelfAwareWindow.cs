@@ -22,7 +22,6 @@ namespace SelfAwareHR
         private bool   _dirty = true;
         private Button _drawFromTeamsButton;
         private Text   _drawFromTeamsLabel;
-        private bool   _extraFieldsAdded;
         private Text   _fireWhenRedundantLabel;
         private Toggle _fireWhenRedundantToggle;
         private bool   _initializing;
@@ -56,6 +55,10 @@ namespace SelfAwareHR
 
         private static AutomationWindow AutomationWindow => HUD.Instance.TeamWindow.autoWindow;
 
+        public bool ExtraFieldsAdded => HRPanel.GetComponentInChildren<Sentinel>() != null;
+
+        public RectTransform HRPanel => WindowManager.FindElementPath(HRPanelPath);
+
         public void Awake()
         {
             // add event listeners for initialization and normal operation.
@@ -63,7 +66,7 @@ namespace SelfAwareHR
             GameSettings.IsDoneLoadingGame += AddExtraFields;
             Instance                       =  this;
 
-            if (!_extraFieldsAdded && (SelectorController.Instance?.DoneLoading ?? false))
+            if ((SelectorController.Instance?.DoneLoading ?? false) && !ExtraFieldsAdded)
             {
                 // attempt adding our stuff if we're toggled on after game load event has already triggered
                 AddExtraFields(null, null);
@@ -191,7 +194,7 @@ namespace SelfAwareHR
 
         public void AddExtraFields(object sender, EventArgs eventArgs)
         {
-            if (!enabled || _extraFieldsAdded)
+            if (!enabled || ExtraFieldsAdded)
             {
                 return;
             }
@@ -252,9 +255,6 @@ namespace SelfAwareHR
             // to changes outside our control. I was somewhat surprised that the game 
             // also uses an Update() hook to continuously update certain dynamic UI elements.
             sentinel.onUpdate += CheckDirty;
-
-            // profit!
-            _extraFieldsAdded = true;
         }
 
         public void SetDirty()
