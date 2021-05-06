@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using Console = DevConsole.Console;
 
 namespace SelfAwareHR
@@ -18,12 +19,12 @@ namespace SelfAwareHR
 
         public bool Active = true;
         public bool FireWhenRedundant;
-        public bool OnlyDrawIdle    = true;
+        public bool OnlyDrawIdle = true;
         public bool OnlyDrawIfSpace = true;
 
-        public Team       Team;
+        public Team Team;
         public List<Team> TeamsToDrawFrom = new List<Team>();
-        public Team       TeamToReleaseTo;
+        public Team TeamToReleaseTo;
 
         private SelfAwareHR(WriteDictionary save)
         {
@@ -53,7 +54,103 @@ namespace SelfAwareHR
 
         internal void Optimize()
         {
-            throw new NotImplementedException();
+            Log.Debug($"optimizing: {Team.Name}");
+            var optimalDesign = RequiredSpecs(Employee.EmployeeRole.Designer);
+            var optimalCode = RequiredSpecs(Employee.EmployeeRole.Programmer);
+            var optimalArt = RequiredSpecs(Employee.EmployeeRole.Artist);
+        }
+
+        public Dictionary<string, int[]> RequiredSpecs(Employee.EmployeeRole role, bool forceFull = false)
+        {
+            float totalWork = 0;
+            var specWork = new Dictionary<string, float[]>();
+
+            // calculate the total amount of work, and the amount
+            // of work per specialization level.
+            foreach (var item in WorkItems(role))
+            {
+                Log.Debug($"\t\t{item.Name} ({item.SoftwareName})");
+                foreach (var task in item.Features)
+                {
+                    if (task.RelevantFor(role, forceFull))
+                    {
+                        var feature = task.Feature;
+                        var work = task.DevTime(role);
+                        var perLevel = specWork.GetOrAdd(feature.Spec, spec => new float[4]);
+
+                        totalWork += work;
+                        perLevel[feature.Level] += work;
+                        Log.Debug($"\t\t\t{feature.Name} ({feature.Level}, {work:F2})");
+                    }
+                }
+            }
+
+            if (specWork.Any())
+            {
+                Log.Debug($"\t {role}: {totalWork}");
+                Log.DebugSpecs(specWork);
+            }
+
+            // get the total number of employees this team would
+            // need, then calculate the number of employees per 
+            // spec.
+            var totalCount = GameData.GetOptimalEmployees(Mathf.Max(1, Mathf.CeilToInt(totalWork)));
+            var specCount = new Dictionary<string, int[]>();
+            foreach (var spec in specWork)
+            {
+                // assign whole employees to each spec level, making
+                // sure that the highest levels are staffed. Added 
+                // "partial" employees at higher levels are compensated
+                // by removing employees at lower levels.
+                //
+                // Note that at worst, this assigns .99 extra per spec, and
+                // it never assigns less employees than optimal. This makes
+                // sure each spec is staffed, but we may want to take away
+                // staff from specs with multiple employees assigned to get
+                // closer to the optimal team size.
+
+                var extra = 0f;
+                var counts = specCount.GetOrAdd(spec.Key, _ => new int[4]);
+                for (var i = 3; i >= 0; i--)
+                {
+                    var raw = spec.Value[i] / totalWork * totalCount;
+                    var count = Mathf.RoundToInt(raw);
+                    var diff = raw - count;
+
+                    if (diff > extra)
+                    {
+                        extra += 1 - diff;
+                        count += 1;
+                    }
+                    else
+                    {
+                        extra -= diff;
+                    }
+
+                    counts[i] = count;
+                }
+            }
+
+            if (specCount.Any())
+            {
+                Log.Debug($"\t{role} count: {totalCount}");
+                Log.DebugSpecs(specCount);
+            }
+
+            return specCount;
+        }
+
+        public IEnumerable<SoftwareWorkItem> WorkItems(Employee.EmployeeRole role)
+        {
+            if (role == Employee.EmployeeRole.Designer)
+            {
+                return Team.WorkItems.OfType<DesignDocument>().Where(item => !item.AllDone(true));
+            }
+
+            return Team.WorkItems.OfType<SoftwareWorkItem>()
+                       .Where(item => !item.AllDone(false,
+                                                    role == Employee.EmployeeRole.Artist,
+                                                    role == Employee.EmployeeRole.Programmer));
         }
 
         protected WriteDictionary SerializeMe()
@@ -63,20 +160,20 @@ namespace SelfAwareHR
             Log.DebugSerializing($"serializing data for {Team.Name}");
             Log.DebugSerializing(ToString());
             var save = new WriteDictionary();
-            save["Team"]              = Team.Name;
-            save["Active"]            = Active;
-            save["OnlyDrawIdle"]      = OnlyDrawIdle;
-            save["OnlyDrawIfSpace"]   = OnlyDrawIfSpace;
+            save["Team"] = Team.Name;
+            save["Active"] = Active;
+            save["OnlyDrawIdle"] = OnlyDrawIdle;
+            save["OnlyDrawIfSpace"] = OnlyDrawIfSpace;
             save["FireWhenRedundant"] = FireWhenRedundant;
-            save["ReleaseTo"]         = TeamToReleaseTo?.Name ?? "None";
-            save["DrawFrom"]          = TeamsToDrawFrom?.FilterNull().Select(team => team.Name).ToArray();
+            save["ReleaseTo"] = TeamToReleaseTo?.Name ?? "None";
+            save["DrawFrom"] = TeamsToDrawFrom?.FilterNull().Select(team => team.Name).ToArray();
 
             return save;
         }
 
         protected bool DeserializeMe(WriteDictionary save)
         {
-            var teams    = GameSettings.Instance.sActorManager.Teams;
+            var teams = GameSettings.Instance.sActorManager.Teams;
             var teamName = save.Get<string>("Team");
 
             Log.DebugSerializing($"deserializing data for {teamName}");
@@ -89,9 +186,9 @@ namespace SelfAwareHR
                 return false;
             }
 
-            Active            = save.Get("Active", false);
-            OnlyDrawIdle      = save.Get("OnlyDrawIdle", true);
-            OnlyDrawIfSpace   = save.Get("OnlyDrawIfSpace", true);
+            Active = save.Get("Active", false);
+            OnlyDrawIdle = save.Get("OnlyDrawIdle", true);
+            OnlyDrawIfSpace = save.Get("OnlyDrawIfSpace", true);
             FireWhenRedundant = save.Get("FireWhenRedundant", false);
 
             var teamToReleaseTo = save.Get<string>("ReleaseTo");

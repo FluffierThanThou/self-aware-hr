@@ -245,7 +245,9 @@ namespace SelfAwareHR
             // adding an empty text element, because of the above mentioned two-column layout
             AppendLine(hrPanel, CreateText(""), _triggerOptimizationButton);
 
-            // add a sentinel to the hrPanel to get enabled/disabled notifications
+            // add a sentinel to the hrPanel to get enabled/disabled notifications, we can't use
+            // this behaviours' lifecycle directly, because it is attached to something else, 
+            // not actually sure what (mod container? base component?).
             var sentinel = hrPanel.gameObject.AddComponent<Sentinel>();
 
             // we can't do our (re-)initialization on enable, because the components

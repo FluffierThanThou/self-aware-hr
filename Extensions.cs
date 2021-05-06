@@ -1,10 +1,11 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/Extensions.cs
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using DevConsole;
-using UnityEngine;
+using Console = DevConsole.Console;
+using Object = UnityEngine.Object;
 
 namespace SelfAwareHR
 {
@@ -72,6 +73,48 @@ namespace SelfAwareHR
 
             output = null;
             return false;
+        }
+
+        public static bool RelevantFor(this SoftwareWorkItem.FeatureProgress task,
+                                       Employee.EmployeeRole                 role,
+                                       bool                                  forceFull = false)
+        {
+            switch (role)
+            {
+                case Employee.EmployeeRole.Designer:
+                    return task.DevTime > 0 && (!task.CodeDone || forceFull);
+                case Employee.EmployeeRole.Programmer:
+                    return task.CDevTime > 0 && (!task.CodeDone || forceFull);
+                case Employee.EmployeeRole.Artist:
+                    return task.ADevTime > 0 && (!task.ArtDone || forceFull);
+                default:
+                    return false;
+            }
+        }
+
+        public static string Join<T>(this IEnumerable<T> list, string sep = ", ", Func<T, string> stringifier = null)
+        {
+            return stringifier != null ? string.Join(sep, list.Select(stringifier)) : string.Join(sep, list);
+        }
+
+        public static string Join(this IEnumerable<string> list, string sep = ", ")
+        {
+            return string.Join(sep, list);
+        }
+
+        public static float DevTime(this SoftwareWorkItem.FeatureProgress feature, Employee.EmployeeRole role)
+        {
+            switch (role)
+            {
+                case Employee.EmployeeRole.Programmer:
+                    return feature.CDevTime;
+                case Employee.EmployeeRole.Designer:
+                    return feature.DevTime;
+                case Employee.EmployeeRole.Artist:
+                    return feature.ADevTime;
+                default:
+                    return 0;
+            }
         }
     }
 }

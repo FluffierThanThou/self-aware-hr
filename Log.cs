@@ -1,6 +1,9 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/SelfAwareHR/Log.cs
 
+#define DEBUG_OPTIMIZATION
+
+using System.Collections.Generic;
 using DevConsole;
 
 namespace SelfAwareHR
@@ -25,6 +28,16 @@ namespace SelfAwareHR
         {
 #if DEBUG_UPDATES
             Console.Log(message);
+#endif
+        }
+
+        public static void DebugSpecs<T>(Dictionary<string, T[]> specs)
+        {
+#if DEBUG_OPTIMIZATION
+            foreach (var spec in specs)
+            {
+                Debug($"\t{spec.Key}: {spec.Value.Join()}");
+            }
 #endif
         }
     }
