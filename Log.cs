@@ -24,13 +24,6 @@ namespace SelfAwareHR
 #endif
         }
 
-        public static void DebugUpdates(string message)
-        {
-#if DEBUG_UPDATES
-            Console.Log(message);
-#endif
-        }
-
         public static void DebugSpecs<T>(Dictionary<string, T[]> specs)
         {
 #if DEBUG_OPTIMIZATION
@@ -38,6 +31,23 @@ namespace SelfAwareHR
             {
                 Debug($"\t{spec.Key}: {spec.Value.Join()}");
             }
+#endif
+        }
+
+        public static void DebugSpecs<T>(Dictionary<string, T> specs)
+        {
+#if DEBUG_OPTIMIZATION
+            foreach (var spec in specs)
+            {
+                Debug($"\t{spec.Key}: {spec.Value}");
+            }
+#endif
+        }
+
+        public static void DebugUpdates(string message)
+        {
+#if DEBUG_UPDATES
+            Console.Log(message);
 #endif
         }
     }

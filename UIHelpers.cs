@@ -1,5 +1,5 @@
 // Copyright Karel Kroeze, 2021-2021.
-// SelfAwareHR/UIHelpers.cs
+// SelfAwareHR/SelfAwareHR/UIHelpers.cs
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,19 +10,6 @@ namespace SelfAwareHR
     public static class UIHelpers
     {
         public static int LINE_HEIGHT = 60;
-
-        public static Text CreateText(string label, string tooltipTitle = null, string tooltipDesc = null)
-        {
-            var text = WindowManager.SpawnLabel();
-            text.text = label;
-
-            if (!tooltipTitle.IsNullOrEmpty() || !tooltipDesc.IsNullOrEmpty())
-            {
-                AddTooltip(text.gameObject, tooltipTitle, tooltipDesc);
-            }
-
-            return text;
-        }
 
         private static void AddTooltip(GameObject gameObject, string tip, string desc)
         {
@@ -37,6 +24,31 @@ namespace SelfAwareHR
                 tt.ToolTipValue       = tip;
                 tt.TooltipDescription = desc;
             }
+        }
+
+        public static void AppendLine(RectTransform parent, params Component[] elements)
+        {
+            var width = (int) parent.rect.width / elements.Length;
+            var y     = (int) parent.rect.yMax;
+            for (var i = 0; i < elements.Length; i++)
+            {
+                var rect = new Rect(i * width, y, width, LINE_HEIGHT);
+                WindowManager.AddElementToElement(elements[i].gameObject, parent.gameObject, rect, Rect.zero);
+            }
+        }
+
+        public static Button CreateButton(UnityAction onClick, string label = "", string tip = "", string desc = "")
+        {
+            var button = WindowManager.SpawnButton();
+            button.onClick.AddListener(onClick);
+            button.SetLabel(label);
+
+            if (!tip.IsNullOrEmpty() || !desc.IsNullOrEmpty())
+            {
+                AddTooltip(button.gameObject, tip, desc);
+            }
+
+            return button;
         }
 
         public static Text CreateLocalizedText(string key,
@@ -54,30 +66,29 @@ namespace SelfAwareHR
             return CreateText(label, tip, desc);
         }
 
-        public static Button CreateButton(UnityAction onClick, string label = "", string tip = "", string desc = "")
+        public static RectTransform CreateRowLayout(params Component[] children)
         {
-            var button = WindowManager.SpawnButton();
-            button.onClick.AddListener(onClick);
-            button.SetLabel(label);
-
-            if (!tip.IsNullOrEmpty() || !desc.IsNullOrEmpty())
+            var go        = new GameObject("RowLayout", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            var transform = go.GetComponent<RectTransform>();
+            foreach (var child in children)
             {
-                AddTooltip(button.gameObject, tip, desc);
+                child.transform.SetParent(transform);
             }
 
-            return button;
+            return transform;
         }
 
-        public static void SetLabel(this Button button, string label)
+        public static Text CreateText(string label, string tooltipTitle = null, string tooltipDesc = null)
         {
-            var text = button.GetComponentInChildren<Text>();
+            var text = WindowManager.SpawnLabel();
             text.text = label;
-        }
 
-        public static void SetLabel(this Toggle toggle, string label)
-        {
-            var text = toggle.GetComponentInChildren<Text>();
-            text.text = label;
+            if (!tooltipTitle.IsNullOrEmpty() || !tooltipDesc.IsNullOrEmpty())
+            {
+                AddTooltip(text.gameObject, tooltipTitle, tooltipDesc);
+            }
+
+            return text;
         }
 
         public static Toggle CreateToggle(UnityAction<bool> onChange,
@@ -99,15 +110,16 @@ namespace SelfAwareHR
             return toggle;
         }
 
-        public static void AppendLine(RectTransform parent, params Component[] elements)
+        public static void SetLabel(this Button button, string label)
         {
-            var width = (int) parent.rect.width / elements.Length;
-            var y     = (int) parent.rect.yMax;
-            for (var i = 0; i < elements.Length; i++)
-            {
-                var rect = new Rect(i * width, y, width, LINE_HEIGHT);
-                WindowManager.AddElementToElement(elements[i].gameObject, parent.gameObject, rect, Rect.zero);
-            }
+            var text = button.GetComponentInChildren<Text>();
+            text.text = label;
+        }
+
+        public static void SetLabel(this Toggle toggle, string label)
+        {
+            var text = toggle.GetComponentInChildren<Text>();
+            text.text = label;
         }
     }
 }

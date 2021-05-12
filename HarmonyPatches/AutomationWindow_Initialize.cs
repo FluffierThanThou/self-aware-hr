@@ -1,5 +1,5 @@
-﻿// // Copyright Karel Kroeze, 2021-2021.
-// // SelfAwareHR/SelfAwareHR/AutomationWindow_Initialize.cs
+﻿// Copyright Karel Kroeze, 2021-2021.
+// SelfAwareHR/SelfAwareHR/AutomationWindow_Initialize.cs
 
 // using HarmonyLib;
 
@@ -23,3 +23,4 @@
 //         }
 //     }
 // }
+

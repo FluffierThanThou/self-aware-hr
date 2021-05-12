@@ -84,6 +84,9 @@
     <Compile Include="SelfAwareHR.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Sentinel.cs" />
+    <Compile Include="Solver\FlowEdge.cs" />
+    <Compile Include="Solver\FlowNetwork.cs" />
+    <Compile Include="Solver\FordFulkerson.cs" />
     <Compile Include="UIHelpers.cs" />
     <Compile Include="HarmonyPatches\AutomationWindow_Initialize.cs" />
   </ItemGroup>
@@ -93,10 +96,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>@echo off
-robocopy "$(TargetDir)\" "E:\Games\steamapps\common\Software Inc\DLLMods\SelfAwareHR\\"  -MIR -NP
-if errorlevel 1 (
-   exit /b 0
+    <PostBuildEvent>
+    mod update
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,5 +1,5 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
-// SelfAwareHR/SelfAwareHR/SkillBasedHRBehaviour.cs
+// SelfAwareHR/SelfAwareHR/SelfAwareWindow.cs
 
 using System;
 using System.Collections.Generic;
@@ -17,41 +17,30 @@ namespace SelfAwareHR
         public const  string          Level3Path  = HRPanelPath + "/Level3";
         public static SelfAwareWindow Instance;
 
-        private Text   _autoSpecsLabel;
-        private Toggle _autoSpecsToggle;
-        private bool   _dirty = true;
-        private Button _drawFromTeamsButton;
-        private Text   _drawFromTeamsLabel;
-        private Text   _fireWhenRedundantLabel;
-        private Toggle _fireWhenRedundantToggle;
-        private bool   _ignoreUpdates;
-        private Text   _onlyDrawIfIdleLabel;
-        private Toggle _onlyDrawIfIdleToggle;
-        private Text   _onlyDrawIfSpaceLabel;
-        private Toggle _onlyDrawIfSpaceToggle;
-
-        private int         _prevHRLevel = int.MinValue;
-        private Button      _releaseToTeamButton;
-        private Text        _releaseToTeamLabel;
-        private Text        _selfAwareHRLabel;
-        private StarCounter _starCounter;
-        private Team[]      _teams;
-        private Button      _triggerOptimizationButton;
-
-        protected Team[] Teams
-        {
-            get => _teams;
-            set => _teams = value ?? new Team[0];
-        }
-
-        public List<SelfAwareHR> Settings => Teams?.Select(team => SelfAwareHR.For(team)).ToList();
-
-        public List<Team> TeamsToDrawFrom => Settings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToList();
-
-        public Team TeamToReleaseTo => Settings.SelectNotNull(hr => hr.TeamToReleaseTo).Mode();
-
-        // if I understand correctly, this causes selected teams to be on top of the list next time? 
-        public string Type => "SelfAwareHR";
+        private Text          _autoSpecsLabel;
+        private Toggle        _autoSpecsToggle;
+        private bool          _dirty = true;
+        private Button        _drawFromTeamsButton;
+        private Text          _drawFromTeamsLabel;
+        private Text          _fireWhenRedundantLabel;
+        private Toggle        _fireWhenRedundantToggle;
+        private bool          _ignoreUpdates;
+        private Text          _onlyDrawIfIdleLabel;
+        private Toggle        _onlyDrawIfIdleToggle;
+        private Text          _onlyDrawIfSpaceLabel;
+        private Toggle        _onlyDrawIfSpaceToggle;
+        private int           _prevHRLevel = int.MinValue;
+        private Button        _releaseToTeamButton;
+        private Text          _releaseToTeamLabel;
+        private Text          _selfAwareHRLabel;
+        private StarCounter   _starCounter;
+        private Toggle        _teamRolesArtToggle;
+        private Toggle        _teamRolesDesignToggle;
+        private Text          _teamRolesLabel;
+        private Toggle        _teamRolesProgrammingToggle;
+        private RectTransform _teamRolesRow;
+        private Team[]        _teams;
+        private Button        _triggerOptimizationButton;
 
         private static AutomationWindow AutomationWindow => HUD.Instance.TeamWindow.autoWindow;
 
@@ -59,141 +48,20 @@ namespace SelfAwareHR
 
         public RectTransform HRPanel => WindowManager.FindElementPath(HRPanelPath);
 
-        public void Awake()
-        {
-            // add event listeners for initialization and normal operation.
-            TimeOfDay.OnDayPassed          += OnDayPassed;
-            GameSettings.IsDoneLoadingGame += AddExtraFields;
-            Instance                       =  this;
+        public List<SelfAwareHR> Settings => Teams?.Select(team => SelfAwareHR.For(team)).ToList();
 
-            if ((SelectorController.Instance?.DoneLoading ?? false) && !ExtraFieldsAdded)
-            {
-                // attempt adding our stuff if we're toggled on after game load event has already triggered
-                AddExtraFields(null, null);
-            }
+        protected Team[] Teams
+        {
+            get => _teams;
+            set => _teams = value ?? new Team[0];
         }
 
-        public void UpdateControls()
-        {
-            _ignoreUpdates = true;
-            Teams          = AutomationWindow.Teams;
-            UpdateStarCounter();
-            UpdateToggles();
-            UpdateLabels();
-            _ignoreUpdates = false;
-            _dirty         = false;
-        }
+        public List<Team> TeamsToDrawFrom => Settings.SelectMany(hr => hr.TeamsToDrawFrom).Distinct().ToList();
 
-        private void UpdateStarCounter()
-        {
-            var level = Teams?.MaxSafeInt(team => team.GetHRLevel()) ?? 0;
-            _starCounter.NonActiveColor = level >= 3 ? AutomationWindow.ActiveLevel : AutomationWindow.InactiveLevel;
-            _starCounter.SetVerticesDirty();
-            _prevHRLevel = level;
-        }
+        public Team TeamToReleaseTo => Settings.SelectNotNull(hr => hr.TeamToReleaseTo).Mode();
 
-        public void UpdateToggles()
-        {
-            // todo: is there a 'mixed' toggle state?
-            _autoSpecsToggle.isOn         = Settings.Mode(hr => hr.Active);
-            _onlyDrawIfIdleToggle.isOn    = Settings.Mode(hr => hr.OnlyDrawIdle);
-            _onlyDrawIfSpaceToggle.isOn   = Settings.Mode(hr => hr.OnlyDrawIfSpace);
-            _fireWhenRedundantToggle.isOn = Settings.Mode(hr => hr.FireWhenRedundant);
-        }
-
-        public void UpdateLabels()
-        {
-            // update button labels with team names
-            _drawFromTeamsButton.SetLabel(TeamsToDrawFrom?.ToArray().GetListAbbrev("Team", team => team.Name));
-            _releaseToTeamButton.SetLabel(TeamToReleaseTo?.Name ?? "None");
-        }
-
-        public void OnReleaseToTeamButtonClick()
-        {
-            HUD.Instance.TeamSelectWindow.Show(true, TeamToReleaseTo?.Name, SetTeamToReleaseTo, Type);
-        }
-
-        public void SetTeamToReleaseTo(string[] selectedTeams)
-        {
-            Team teamToReleaseTo;
-            switch (selectedTeams.Length)
-            {
-                case 0:
-                    teamToReleaseTo = null;
-                    break;
-                case 1:
-                    teamToReleaseTo = GameSettings.GetTeam(selectedTeams[0]);
-                    break;
-                default:
-                    teamToReleaseTo = null;
-                    Console.LogError("selected multiple teams to release to. That should not be possible.");
-                    break;
-            }
-
-            foreach (var team in Teams)
-            {
-                SelfAwareHR.For(team).TeamToReleaseTo = teamToReleaseTo;
-            }
-
-            UpdateLabels();
-        }
-
-        public void OnDrawFromTeamsButtonClick()
-        {
-            HUD.Instance.TeamSelectWindow.Show(false,
-                                               TeamsToDrawFrom.Select(team => team.Name).ToHashSet(),
-                                               SetTeamsToDrawFrom,
-                                               Type);
-        }
-
-        public void SetTeamsToDrawFrom(string[] selectedTeams)
-        {
-            var teamsToDrawFrom = selectedTeams.Select(GameSettings.GetTeam).ToList();
-            foreach (var team in Teams)
-            {
-                SelfAwareHR.For(team).TeamsToDrawFrom = teamsToDrawFrom;
-            }
-
-            UpdateLabels();
-        }
-
-        public void OnAutoSpecsChanged(bool value)
-        {
-            Log.DebugUpdates($"updating active [{value}], init [{_ignoreUpdates}]");
-            if (_ignoreUpdates)
-            {
-                return;
-            }
-
-            foreach (var team in Teams)
-            {
-                Log.DebugUpdates($"setting active [{value}] for {team.Name}");
-                SelfAwareHR.For(team).Active = value;
-            }
-        }
-
-        public override void OnDeactivate()
-        {
-            Console.Log("Self-Aware HR deactivated");
-            TryRemoveExtraFields();
-            enabled = false;
-        }
-
-        public override void OnActivate()
-        {
-            Console.Log("Self-Aware HR activated");
-            enabled = true;
-        }
-
-        public void OnDayPassed(object sender, EventArgs eventArgs)
-        {
-            if (!enabled)
-            {
-                return;
-            }
-
-            Console.Log("doing some fancy pants shit");
-        }
+        // if I understand correctly, this causes selected teams to be on top of the list next time? 
+        public string Type => "SelfAwareHR";
 
         public void AddExtraFields(object sender, EventArgs eventArgs)
         {
@@ -205,20 +73,25 @@ namespace SelfAwareHR
             _ignoreUpdates = true;
 
             // create new UI elements
-            _selfAwareHRLabel           = CreateLocalizedText("selfAwareHR");
+            _selfAwareHRLabel = CreateLocalizedText("selfAwareHR");
             _selfAwareHRLabel.fontStyle = FontStyle.Bold;
-            _autoSpecsLabel             = CreateLocalizedText("autoSpecs");
-            _autoSpecsToggle            = CreateToggle(OnAutoSpecsChanged);
-            _drawFromTeamsLabel         = CreateLocalizedText("drawFromTeams");
-            _drawFromTeamsButton        = CreateButton(OnDrawFromTeamsButtonClick);
-            _onlyDrawIfSpaceLabel       = CreateLocalizedText("onlyDrawIfSpace");
-            _onlyDrawIfSpaceToggle      = CreateToggle(OnOnlyDrawIfSpaceChanged);
-            _onlyDrawIfIdleLabel        = CreateLocalizedText("onlyDrawIfIdle");
-            _onlyDrawIfIdleToggle       = CreateToggle(OnOnlyDrawIfIdleChanged);
-            _releaseToTeamLabel         = CreateLocalizedText("releaseToTeam");
-            _releaseToTeamButton        = CreateButton(OnReleaseToTeamButtonClick);
-            _fireWhenRedundantLabel     = CreateLocalizedText("fireWhenRedundant");
-            _fireWhenRedundantToggle    = CreateToggle(OnFireWhenRedundantChange);
+            _autoSpecsLabel = CreateLocalizedText("autoSpecs");
+            _autoSpecsToggle = CreateToggle(OnAutoSpecsChanged);
+            _teamRolesLabel = CreateLocalizedText("teamRoles");
+            _teamRolesDesignToggle = CreateToggle(OnTeamRolesDesignChanged, label: "Design".Loc());
+            _teamRolesProgrammingToggle = CreateToggle(OnTeamRolesProgrammingChanged, label: "Programming".Loc());
+            _teamRolesArtToggle = CreateToggle(OnTeamRolesArtChanged, label: "Art".Loc());
+            _teamRolesRow = CreateRowLayout(_teamRolesDesignToggle, _teamRolesProgrammingToggle, _teamRolesArtToggle);
+            _drawFromTeamsLabel = CreateLocalizedText("drawFromTeams");
+            _drawFromTeamsButton = CreateButton(OnDrawFromTeamsButtonClick);
+            _onlyDrawIfSpaceLabel = CreateLocalizedText("onlyDrawIfSpace");
+            _onlyDrawIfSpaceToggle = CreateToggle(OnOnlyDrawIfSpaceChanged);
+            _onlyDrawIfIdleLabel = CreateLocalizedText("onlyDrawIfIdle");
+            _onlyDrawIfIdleToggle = CreateToggle(OnOnlyDrawIfIdleChanged);
+            _releaseToTeamLabel = CreateLocalizedText("releaseToTeam");
+            _releaseToTeamButton = CreateButton(OnReleaseToTeamButtonClick);
+            _fireWhenRedundantLabel = CreateLocalizedText("fireWhenRedundant");
+            _fireWhenRedundantToggle = CreateToggle(OnFireWhenRedundantChanged);
             _triggerOptimizationButton = CreateButton(OnTriggerOptimizationButtonClick,
                                                       "triggerOptimizationLabel".Loc(),
                                                       "triggerOptimizationTip".Loc());
@@ -237,6 +110,7 @@ namespace SelfAwareHR
             // TODO: try to figure if and how I can manipulate that, and whether I even want to.
             AppendLine(hrPanel, _selfAwareHRLabel, level3);
             AppendLine(hrPanel, _autoSpecsLabel, _autoSpecsToggle);
+            AppendLine(hrPanel, _teamRolesLabel, _teamRolesRow);
             AppendLine(hrPanel, _drawFromTeamsLabel, _drawFromTeamsButton);
             AppendLine(hrPanel, _releaseToTeamLabel, _releaseToTeamButton);
             AppendLine(hrPanel, _onlyDrawIfSpaceLabel, _onlyDrawIfSpaceToggle);
@@ -265,9 +139,18 @@ namespace SelfAwareHR
             _ignoreUpdates = false;
         }
 
-        public void SetDirty()
+        public void Awake()
         {
-            _dirty = true;
+            // add event listeners for initialization and normal operation.
+            TimeOfDay.OnDayPassed          += OnDayPassed;
+            GameSettings.IsDoneLoadingGame += AddExtraFields;
+            Instance                       =  this;
+
+            if ((SelectorController.Instance?.DoneLoading ?? false) && !ExtraFieldsAdded)
+            {
+                // attempt adding our stuff if we're toggled on after game load event has already triggered
+                AddExtraFields(null, null);
+            }
         }
 
         // called every update through our sentinel object, we need to reinitialize
@@ -308,15 +191,53 @@ namespace SelfAwareHR
             }
         }
 
-        public void OnTriggerOptimizationButtonClick()
+        public override void OnActivate()
         {
+            Console.Log("Self-Aware HR activated");
+            enabled = true;
+        }
+
+        public void OnAutoSpecsChanged(bool value)
+        {
+            Log.DebugUpdates($"updating active [{value}], init [{_ignoreUpdates}]");
+            if (_ignoreUpdates)
+            {
+                return;
+            }
+
             foreach (var team in Teams)
             {
-                SelfAwareHR.For(team).Optimize();
+                Log.DebugUpdates($"setting active [{value}] for {team.Name}");
+                SelfAwareHR.For(team).Active = value;
             }
         }
 
-        public void OnFireWhenRedundantChange(bool value)
+        public void OnDayPassed(object sender, EventArgs eventArgs)
+        {
+            if (!enabled)
+            {
+                return;
+            }
+
+            Console.Log("doing some fancy pants shit");
+        }
+
+        public override void OnDeactivate()
+        {
+            Console.Log("Self-Aware HR deactivated");
+            TryRemoveExtraFields();
+            enabled = false;
+        }
+
+        public void OnDrawFromTeamsButtonClick()
+        {
+            HUD.Instance.TeamSelectWindow.Show(false,
+                                               TeamsToDrawFrom.Select(team => team.Name).ToHashSet(),
+                                               SetTeamsToDrawFrom,
+                                               Type);
+        }
+
+        public void OnFireWhenRedundantChanged(bool value)
         {
             if (_ignoreUpdates)
             {
@@ -355,6 +276,99 @@ namespace SelfAwareHR
             }
         }
 
+        public void OnReleaseToTeamButtonClick()
+        {
+            HUD.Instance.TeamSelectWindow.Show(true, TeamToReleaseTo?.Name, SetTeamToReleaseTo, Type);
+        }
+
+        private void OnTeamRolesArtChanged(bool value)
+        {
+            if (_ignoreUpdates)
+            {
+                return;
+            }
+
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).ArtTasks = value;
+            }
+        }
+
+        private void OnTeamRolesDesignChanged(bool value)
+        {
+            if (_ignoreUpdates)
+            {
+                return;
+            }
+
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).DesignTasks = value;
+            }
+        }
+
+        private void OnTeamRolesProgrammingChanged(bool value)
+        {
+            if (_ignoreUpdates)
+            {
+                return;
+            }
+
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).ProgrammingTasks = value;
+            }
+        }
+
+        public void OnTriggerOptimizationButtonClick()
+        {
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).Optimize();
+            }
+        }
+
+        public void SetDirty()
+        {
+            _dirty = true;
+        }
+
+        public void SetTeamsToDrawFrom(string[] selectedTeams)
+        {
+            var teamsToDrawFrom = selectedTeams.Select(GameSettings.GetTeam).ToList();
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).TeamsToDrawFrom = teamsToDrawFrom.Where(t => t != team).ToList();
+            }
+
+            UpdateLabels();
+        }
+
+        public void SetTeamToReleaseTo(string[] selectedTeams)
+        {
+            Team teamToReleaseTo;
+            switch (selectedTeams.Length)
+            {
+                case 0:
+                    teamToReleaseTo = null;
+                    break;
+                case 1:
+                    teamToReleaseTo = GameSettings.GetTeam(selectedTeams[0]);
+                    break;
+                default:
+                    teamToReleaseTo = null;
+                    Console.LogError("selected multiple teams to release to. That should not be possible.");
+                    break;
+            }
+
+            foreach (var team in Teams)
+            {
+                SelfAwareHR.For(team).TeamToReleaseTo = teamToReleaseTo == team ? null : teamToReleaseTo;
+            }
+
+            UpdateLabels();
+        }
+
         public void TryRemoveExtraFields()
         {
             // I honestly have no idea what this will do to the layout. 
@@ -373,6 +387,50 @@ namespace SelfAwareHR
             _fireWhenRedundantLabel?.gameObject.Destroy();
             _fireWhenRedundantToggle?.gameObject.Destroy();
             _triggerOptimizationButton?.gameObject.Destroy();
+            _teamRolesArtToggle?.gameObject.Destroy();
+            _teamRolesDesignToggle?.gameObject.Destroy();
+            _teamRolesProgrammingToggle?.gameObject.Destroy();
+            _teamRolesLabel?.gameObject.Destroy();
+            _teamRolesRow?.gameObject.Destroy();
+            _starCounter?.gameObject.Destroy();
+        }
+
+        public void UpdateControls()
+        {
+            _ignoreUpdates = true;
+            Teams          = AutomationWindow.Teams;
+            UpdateStarCounter();
+            UpdateToggles();
+            UpdateLabels();
+            _ignoreUpdates = false;
+            _dirty         = false;
+        }
+
+        public void UpdateLabels()
+        {
+            // update button labels with team names
+            _drawFromTeamsButton.SetLabel(TeamsToDrawFrom?.ToArray().GetListAbbrev("Team", team => team.Name));
+            _releaseToTeamButton.SetLabel(TeamToReleaseTo?.Name ?? "None");
+        }
+
+        private void UpdateStarCounter()
+        {
+            var level = Teams?.MaxSafeInt(team => team.GetHRLevel()) ?? 0;
+            _starCounter.NonActiveColor = level >= 3 ? AutomationWindow.ActiveLevel : AutomationWindow.InactiveLevel;
+            _starCounter.SetVerticesDirty();
+            _prevHRLevel = level;
+        }
+
+        public void UpdateToggles()
+        {
+            // todo: is there a 'mixed' toggle state?
+            _autoSpecsToggle.isOn            = Settings.Mode(hr => hr.Active);
+            _onlyDrawIfIdleToggle.isOn       = Settings.Mode(hr => hr.OnlyDrawIdle);
+            _onlyDrawIfSpaceToggle.isOn      = Settings.Mode(hr => hr.OnlyDrawIfSpace);
+            _fireWhenRedundantToggle.isOn    = Settings.Mode(hr => hr.FireWhenRedundant);
+            _teamRolesDesignToggle.isOn      = Settings.Mode(hr => hr.DesignTasks);
+            _teamRolesProgrammingToggle.isOn = Settings.Mode(hr => hr.ProgrammingTasks);
+            _teamRolesArtToggle.isOn         = Settings.Mode(hr => hr.ArtTasks);
         }
     }
 }

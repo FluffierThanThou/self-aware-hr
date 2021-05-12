@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 15
+        "build": 58
     },
     "description": "smarter HR",
     "author": {
@@ -14,5 +14,15 @@
         "url": "",
         "email": "fluffy.l2032@gmail.com"
     },
-    "changelog": []
+    "changelog": [
+        {
+            "date": "2021-05-06T16:54:32.000Z",
+            "message": "start on optimal team composition calculations",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "6919fe578cf7b677ac28eb31a468dbfd649f7040"
+        }
+    ]
 }

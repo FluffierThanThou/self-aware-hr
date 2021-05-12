@@ -1,5 +1,5 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
-// SelfAwareHR/Sentinel.cs
+// SelfAwareHR/SelfAwareHR/Sentinel.cs
 
 using System;
 using UnityEngine;
@@ -9,9 +9,14 @@ namespace SelfAwareHR
     public class Sentinel : MonoBehaviour
     {
         public event Action onDisable;
+
+        public void OnDisable()
+        {
+            onDisable?.Invoke();
+            onStatusChanged?.Invoke(false);
+        }
+
         public event Action onEnable;
-        public event Action onUpdate;
-        public event Action<bool> onStatusChanged;
 
         public void OnEnable()
         {
@@ -19,11 +24,8 @@ namespace SelfAwareHR
             onStatusChanged?.Invoke(true);
         }
 
-        public void OnDisable()
-        {
-            onDisable?.Invoke();
-            onStatusChanged?.Invoke(false);
-        }
+        public event Action<bool> onStatusChanged;
+        public event Action       onUpdate;
 
         public void Update()
         {

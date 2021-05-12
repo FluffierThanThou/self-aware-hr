@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿// Copyright Karel Kroeze, 2021-2021.
+// SelfAwareHR/SelfAwareHR/Mod.cs
+
+using UnityEngine;
 
 namespace SelfAwareHR
 {
@@ -14,19 +17,19 @@ namespace SelfAwareHR
             WindowManager.AddElementToElement(desc.gameObject, parent.gameObject, new Rect(0, 0, 400, 128f), Rect.zero);
         }
 
+        public override void Deserialize(WriteDictionary data, GameReader.LoadMode mode)
+        {
+            Log.DebugSerializing("de-serializing self-aware mod data");
+            var teams = data.Get<WriteDictionary[]>("teams");
+            SelfAwareHR.Deserialize(teams);
+        }
+
         public override WriteDictionary Serialize(GameReader.LoadMode mode)
         {
             Log.DebugSerializing("serializing self-aware mod data");
             var save = new WriteDictionary("Fluffy.SelfAwareHR");
             save["teams"] = SelfAwareHR.Serialize();
             return save;
-        }
-
-        public override void Deserialize(WriteDictionary data, GameReader.LoadMode mode)
-        {
-            Log.DebugSerializing("de-serializing self-aware mod data");
-            var teams = data.Get<WriteDictionary[]>("teams");
-            SelfAwareHR.Deserialize(teams);
         }
     }
 }
