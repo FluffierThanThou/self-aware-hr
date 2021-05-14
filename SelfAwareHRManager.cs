@@ -310,7 +310,6 @@ namespace SelfAwareHR
                 TryReleaseRedundant(ref redundant, ref anyChange);
             }
 
-
             if (anyChange)
             {
                 // update the desired counts for normal HR management.
@@ -806,9 +805,9 @@ namespace SelfAwareHR
             }
 
             return Team.WorkItems.OfType<SoftwareAlpha>()
-                       .Where(item => !item.AllDone(false,
-                                                    role == Employee.EmployeeRole.Artist,
-                                                    role == Employee.EmployeeRole.Programmer));
+                       .Where(item => item.InBeta || !item.AllDone(false,
+                                                                   role == Employee.EmployeeRole.Artist,
+                                                                   role == Employee.EmployeeRole.Programmer));
         }
     }
 }
