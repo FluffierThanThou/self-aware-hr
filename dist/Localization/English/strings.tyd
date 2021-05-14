@@ -54,16 +54,31 @@ triggerOptimizationLabel    "Optimize now!"
 triggerOptimizationTip      "Manually trigger optimization immediately."
 
 # automation log messages
-logHiredWithSkill   "{0} hired {1} new employee(s) with {2} star(s) in {3} for {4}, spending {5}."
-logDrawnWithSkill   "{0} transferred {1} employee(s) with {2} star(s) in {3} from {4} into {5}."
-logFired            "{0} fired {1} employee(s) from {2} because their skills were no longer required."
-logReleased         "{0} transferred {1} employee(s) from {2} into {3} because their skills were no longer required."
+logHired            "HR+ for {0} hired {1} specializing in {2}, spending {3} in hiring fees."
+logDrawn            "HR+ for {0} transferred {1} specializing in {2}."
+logFired            "HR+ for {0} fired {1} because their skills were no longer required, paying {2} in severance fees."
+logReleased         "HR+ for {0} transferred {1} to {2} because their skills were no longer required."
 
 # warning messages
-warnNoSpace         "{0} wants to add {1} employees to {2}, but there are no desks available."
-warnNoApplicants    "{0} wants to add {1} employees to {2}, but there are no available employees with the {3} skill."
+warnNoSpaceTransfer         "HR+ for {0} wants to transfer {1}, but there are no desks available."
+warnNoSpaceHire             "HR+ for {0} wants to hire {1}, but there are no desks available."
+warnNoBudgetHire            "HR+ for {0} wants to hire {1}, but there is not enough HR budget for the hiring fees."
+warnNoBudgetFire            "HR+ for {0} wants to fire {1} because their skills are no longer required, but there is not enough budget for the severance fees."
+warnNoApplicantsTransfer    "HR+ for {0} wants to transfer {1} skilled in {2}, but there are not enough skilled employees available."
+warnNoApplicantsHire        "HR+ for {0} wants to hire {1} skilled in {2}, but there are not enough skilled applicants available."
+warnOverstaffed             "HR+ for {0} wants to transfer or fire {1}, but was unable to do so."
+warnUnderstaffed            "HR+ for {0} wants to transfer or hire {1} skilled in {2}, but was unable to do so."
+
+# Employees
+employeeSingular    "{0} employee"
+employeePlural      "{0} employees"
 
 # roles
 Design              "Design"
 Programming         "Programming"
 Art                 "Art"
+
+# list separators
+listSeparatorComma  ", "
+listSeparatorAnd    "and "
+listSeparatorOr     "or "

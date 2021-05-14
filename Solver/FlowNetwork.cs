@@ -84,7 +84,7 @@ namespace SelfAwareHR.Solver
                 {
                     if (e.To != v)
                     {
-                        s.Append(e.ToString() + " ");
+                        s.Append(e + " ");
                     }
                 }
 

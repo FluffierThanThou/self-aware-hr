@@ -1,13 +1,13 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/SelfAwareHR/Extensions.cs
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Console = DevConsole.Console;
-using Object = UnityEngine.Object;
+using System.Text;
+using DevConsole;
+using UnityEngine;
 
-namespace SelfAwareHR
+namespace SelfAwareHR.Utilities
 {
     public static class Extensions
     {
@@ -39,6 +39,11 @@ namespace SelfAwareHR
             return list?.SelectNotNull(item => item);
         }
 
+        public static IEnumerable<string> FilterNullOrEmpty(this IEnumerable<string> list)
+        {
+            return list?.Where(e => !e.IsNullOrEmpty());
+        }
+
         public static bool IsNullOrEmpty(this string str)
         {
             return string.IsNullOrEmpty(str);
@@ -47,16 +52,6 @@ namespace SelfAwareHR
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> list)
         {
             return list == null || !list.Any();
-        }
-
-        public static string Join<T>(this IEnumerable<T> list, string sep = ", ", Func<T, string> stringifier = null)
-        {
-            return stringifier != null ? string.Join(sep, list.Select(stringifier)) : string.Join(sep, list);
-        }
-
-        public static string Join(this IEnumerable<string> list, string sep = ", ")
-        {
-            return string.Join(sep, list);
         }
 
         public static T Mode<T>(this IEnumerable<T> list, T defaultValue = default)
@@ -69,6 +64,60 @@ namespace SelfAwareHR
             return list.Mode(item => item, defaultValue);
         }
 
+        public static T Pop<T>(this ICollection<T> collection)
+        {
+            if (collection.IsNullOrEmpty())
+            {
+                return default;
+            }
+
+            var item = collection.Last();
+            collection.Remove(item);
+            return item;
+        }
+
+        public static string ReadableList(this IEnumerable<string> collection,
+                                          bool                     finalAnd    = true,
+                                          bool                     oxfordComma = true,
+                                          string                   commaKey    = "listSeparatorComma",
+                                          string                   andKey      = "listSeparatorAnd",
+                                          string                   emptyKey    = "listEmpty")
+        {
+            var list = collection.FilterNullOrEmpty().ToList();
+            if (list.IsNullOrEmpty())
+            {
+                return emptyKey.Loc();
+            }
+
+            if (list.Count() == 1)
+            {
+                return list.First();
+            }
+
+            var comma  = commaKey.Loc();
+            var and    = andKey.Loc();
+            var result = new StringBuilder();
+            for (var i = 0; i < list.Count(); i++)
+            {
+                var first = i == 0;
+                var last  = i == list.Count() - 1;
+
+                if (!first && (!last || oxfordComma || !finalAnd))
+                {
+                    result.Append(comma);
+                }
+
+                if (last && finalAnd)
+                {
+                    result.Append(and);
+                }
+
+                result.Append(list[i]);
+            }
+
+            return result.ToString();
+        }
+
         public static bool RelevantFor(this SoftwareWorkItem.FeatureProgress task,
                                        Employee.EmployeeRole                 role,
                                        bool                                  forceFull = false)
@@ -76,31 +125,19 @@ namespace SelfAwareHR
             switch (role)
             {
                 case Employee.EmployeeRole.Designer:
-                    return task.DevTime > 0 && (!task.CodeDone || forceFull);
+                    return task.DevTime > float.Epsilon && (forceFull || !task.CodeDone);
                 case Employee.EmployeeRole.Programmer:
-                    return task.CDevTime > 0 && (!task.CodeDone || forceFull);
+                    return task.CDevTime > float.Epsilon && (forceFull || !task.CodeDone);
                 case Employee.EmployeeRole.Artist:
-                    return task.ADevTime > 0 && (!task.ArtDone || forceFull);
+                    return task.ADevTime > float.Epsilon && (forceFull || !task.ArtDone);
                 default:
                     return false;
             }
         }
 
-        public static SelfAwareHR SelfAwareHR(this Team team)
+        public static SelfAwareHRManager SelfAwareHR(this Team team)
         {
-            return global::SelfAwareHR.SelfAwareHR.For(team);
-        }
-
-        public static List<T> Splice<T>(this List<T> list, int start, int count)
-        {
-            var sub = list.Skip(start).Take(count).ToList();
-            list.RemoveRange(start, count);
-            return sub;
-        }
-
-        public static List<T> Splice<T>(this List<T> list, int count)
-        {
-            return Splice(list, 0, count);
+            return SelfAwareHRManager.For(team);
         }
 
         public static bool TryLoc(this string input, out string output)

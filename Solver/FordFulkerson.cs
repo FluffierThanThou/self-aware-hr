@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using SelfAwareHR.Utilities;
 
 namespace SelfAwareHR.Solver
 {
@@ -123,7 +124,7 @@ namespace SelfAwareHR.Solver
                 {
                     if (e.Flow < -double.Epsilon || e.Flow > e.Capacity + double.Epsilon)
                     {
-                        Log.Debug($"Edge does not satisfy capacity constraints: {e.ToString()}");
+                        Log.Debug($"Edge does not satisfy capacity constraints: {e}");
                         return false;
                     }
                 }

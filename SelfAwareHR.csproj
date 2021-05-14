@@ -77,17 +77,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Log.cs" />
+    <Compile Include="Utilities\OptimizationLog.cs" />
+    <Compile Include="Utilities\Log.cs" />
+    <Compile Include="Solver\OptimalAssignment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Meta.cs" />
     <Compile Include="Mod.cs" />
-    <Compile Include="SelfAwareWindow.cs" />
-    <Compile Include="SelfAwareHR.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Sentinel.cs" />
+    <Compile Include="SelfAwareHRManager.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Sentinel.cs" />
     <Compile Include="Solver\FlowEdge.cs" />
     <Compile Include="Solver\FlowNetwork.cs" />
     <Compile Include="Solver\FordFulkerson.cs" />
-    <Compile Include="UIHelpers.cs" />
+    <Compile Include="Utilities\SpecLevel.cs" />
+    <Compile Include="Utilities\UIHelpers.cs" />
     <Compile Include="HarmonyPatches\AutomationWindow_Initialize.cs" />
   </ItemGroup>
   <ItemGroup>

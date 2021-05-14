@@ -5,11 +5,17 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace SelfAwareHR
+namespace SelfAwareHR.Utilities
 {
     public static class UIHelpers
     {
-        public static int LINE_HEIGHT = 60;
+        public static void AddComponents(this RectTransform parent, params Component[] components)
+        {
+            foreach (var component in components)
+            {
+                WindowManager.AddElementToElement(component.gameObject, parent.gameObject, Rect.zero, Rect.zero);
+            }
+        }
 
         private static void AddTooltip(GameObject gameObject, string tip, string desc)
         {
@@ -23,17 +29,6 @@ namespace SelfAwareHR
             {
                 tt.ToolTipValue       = tip;
                 tt.TooltipDescription = desc;
-            }
-        }
-
-        public static void AppendLine(RectTransform parent, params Component[] elements)
-        {
-            var width = (int) parent.rect.width / elements.Length;
-            var y     = (int) parent.rect.yMax;
-            for (var i = 0; i < elements.Length; i++)
-            {
-                var rect = new Rect(i * width, y, width, LINE_HEIGHT);
-                WindowManager.AddElementToElement(elements[i].gameObject, parent.gameObject, rect, Rect.zero);
             }
         }
 

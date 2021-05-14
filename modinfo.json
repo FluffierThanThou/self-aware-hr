@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 58
+        "build": 75
     },
     "description": "smarter HR",
     "author": {
@@ -15,6 +15,33 @@
         "email": "fluffy.l2032@gmail.com"
     },
     "changelog": [
+        {
+            "date": "2021-05-12T22:17:25.000Z",
+            "message": "code cleanup, minor refactors",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "d0d05b6cb4c960b79b340adc06910715a3411b75"
+        },
+        {
+            "date": "2021-05-12T22:17:04.000Z",
+            "message": "find optimal assignment and missing/extra specializations, implemented naive release & fire handlers",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "7bd34c09e36aca588f752daa49406a627b7284db"
+        },
+        {
+            "date": "2021-05-12T22:14:40.000Z",
+            "message": "implement max flow solver for optimal task matching",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "9b5b545621b594eeda42cf83769348f71ca4ecfa"
+        },
         {
             "date": "2021-05-06T16:54:32.000Z",
             "message": "start on optimal team composition calculations",

@@ -4,7 +4,7 @@
 using System;
 using UnityEngine;
 
-namespace SelfAwareHR
+namespace SelfAwareHR.Utilities
 {
     public class Sentinel : MonoBehaviour
     {
