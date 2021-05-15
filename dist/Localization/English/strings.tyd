@@ -24,6 +24,7 @@ drawFromTeamsTip            "The team leader can transfer idle employees with re
 
 
 onlyDrawIfSpaceLabel        "Require desks"
+onlyDrawIfSpaceLabelStatus  " ({0}/{1} free)"
 onlyDrawIfSpaceTip          "Restricts leaders to hiring or transfering new employees only when there are available desks in rooms assigned to this team.
 
 Does not take into account any other teams that may be assigned to the same rooms, or rooms that are open to all teams. You may want to disable this if you use common or shared office spaces. "

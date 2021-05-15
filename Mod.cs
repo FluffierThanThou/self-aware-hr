@@ -415,6 +415,13 @@ namespace SelfAwareHR
             // update button labels with team names
             _drawFromTeamsButton.SetLabel(TeamsToDrawFrom?.ToArray().GetListAbbrev("Team", team => team.Name));
             _releaseToTeamButton.SetLabel(TeamToReleaseTo?.Name ?? "None");
+
+            // update desks label with desks taken/available
+            var desks     = Teams.Sum(t => t.SelfAwareHR().Desks.Count());
+            var employees = Teams.Sum(t => t.GetEmployeesDirect().Count);
+            _onlyDrawIfSpaceLabel.text = "onlyDrawIfSpaceLabel".Loc() +
+                                         "onlyDrawIfSpaceLabelStatus".Loc(desks - employees, desks)
+                                                                     .FontColor(Color.gray);
         }
 
         private void UpdateStarCounter()

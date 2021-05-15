@@ -325,8 +325,9 @@ namespace SelfAwareHR
 
             if (anyChange)
             {
-                // update the desired counts for normal HR management.
+                // update the desired counts and desk count for normal HR management.
                 UpdateDesiredCounts();
+                Mod.Instance.UpdateLabels();
 
                 // run optimization again to assign new employees.
                 OptimizeAssignments(true, true);
