@@ -35,7 +35,6 @@ namespace SelfAwareHR.Solver
             redundant   = new List<Actor>();
             assignments = new Dictionary<Actor, RoleSpecLevel>();
 
-
             var graph = new FlowNetwork(n);
             foreach (var agent in agents)
             {

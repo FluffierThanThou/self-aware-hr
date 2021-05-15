@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 76
+        "build": 77
     },
     "description": "smarter HR",
     "author": {
@@ -15,6 +15,15 @@
         "email": "fluffy.l2032@gmail.com"
     },
     "changelog": [
+        {
+            "date": "2021-05-14T22:09:32.000Z",
+            "message": "keep employees around during beta",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "b9232158dc409b5e3be2dd1b993485b9188b94a5"
+        },
         {
             "date": "2021-05-14T22:00:18.000Z",
             "message": "finetuned optimization, implemented auto-hire/fire/transfer",

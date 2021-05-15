@@ -52,9 +52,9 @@ namespace SelfAwareHR
         {
             get
             {
-                if (_lastAssignmentOptimization.IsDistanceBigger(SDateTime.Now(), 60))
+                if (_idealAssignments == null || _lastAssignmentOptimization.IsDistanceBigger(SDateTime.Now(), 60))
                 {
-                    OptimizeAssignments(false, true);
+                    OptimizeAssignments(_idealAssignments == null, true);
                 }
 
                 return _idealAssignments;
@@ -69,7 +69,7 @@ namespace SelfAwareHR
 
         public List<Actor> IdleEmployees
         {
-            get { return Employees.Where(a => a.IsIdle).Except(Assignments.Keys).ToList(); }
+            get { return Employees.FilterNull().Where(a => a.IsIdle).Except(Assignments.Keys).ToList(); }
         }
 
         // todo: may want to cache allowable rooms
@@ -184,7 +184,8 @@ namespace SelfAwareHR
                 var skills = new List<RoleSpecLevel>();
                 foreach (var spec in specs)
                 {
-                    if (actor.employee.GetSpecialization(spec.Role, spec.Spec, actor) >= spec.Level)
+                    if (actor.employee.GetRoleOrNatural(false, true)                  == spec.Role &&
+                        actor.employee.GetSpecialization(spec.Role, spec.Spec, actor) >= spec.Level)
                     {
                         skills.Add(spec);
                     }
