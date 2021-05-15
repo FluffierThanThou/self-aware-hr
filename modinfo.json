@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 77
+        "build": 78
     },
     "description": "smarter HR",
     "author": {
@@ -15,6 +15,15 @@
         "email": "fluffy.l2032@gmail.com"
     },
     "changelog": [
+        {
+            "date": "2021-05-15T12:56:16.000Z",
+            "message": "only transfer employees with the correct role, even if they have the skill",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "f9497807cbb6cc29449c7f445219510e852b1625"
+        },
         {
             "date": "2021-05-14T22:09:32.000Z",
             "message": "keep employees around during beta",

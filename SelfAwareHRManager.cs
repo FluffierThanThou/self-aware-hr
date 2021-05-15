@@ -72,6 +72,19 @@ namespace SelfAwareHR
             get { return Employees.FilterNull().Where(a => a.IsIdle).Except(Assignments.Keys).ToList(); }
         }
 
+        public OptimizationLog OptimizationLog
+        {
+            get
+            {
+                if (_optimizationLog == null)
+                {
+                    _optimizationLog = new OptimizationLog(Team);
+                }
+
+                return _optimizationLog;
+            }
+        }
+
         // todo: may want to cache allowable rooms
         public IEnumerable<Room> Rooms =>
             GameSettings.Instance.sRoomManager.Rooms.Where(r => r.CompatibleWithTeam(Team));
@@ -289,7 +302,6 @@ namespace SelfAwareHR
             }
 
             var anyChange = false;
-            _optimizationLog = new OptimizationLog(Team);
             if (missing.Any())
             {
                 // filter missing specializations down to roles we actually care about.
@@ -448,7 +460,7 @@ namespace SelfAwareHR
         {
             if (!(TryTransferMissing(ref missing, ref anyChange) || TryHireMissing(ref missing, ref anyChange)))
             {
-                _optimizationLog.WarnUnderstaffed(missing);
+                OptimizationLog.WarnUnderstaffed(missing);
             }
         }
 
@@ -483,12 +495,12 @@ namespace SelfAwareHR
             if (fired.Any())
             {
                 anyChange = true;
-                _optimizationLog.LogFire(fired, spent);
+                OptimizationLog.LogFire(fired, spent);
             }
 
             if (budgetConstrained && redundant.Any())
             {
-                _optimizationLog.WarnNoBudget(redundant.Count, false);
+                OptimizationLog.WarnNoBudget(redundant.Count, false);
             }
 
             return !redundant.Any();
@@ -588,19 +600,19 @@ namespace SelfAwareHR
             if (hired.Any())
             {
                 anyChange = true;
-                _optimizationLog.LogHire(hired, spent);
+                OptimizationLog.LogHire(hired, spent);
                 Team.CalculateCompatibility();
             }
 
             missing = missing.Where(p => p.Value > 0).ToDictionary();
             if (deskConstrained)
             {
-                _optimizationLog.WarnNoSpace(missing.Aggregate(0, (acc, cur) => acc + cur.Value), true);
+                OptimizationLog.WarnNoSpace(missing.Aggregate(0, (acc, cur) => acc + cur.Value), true);
             }
 
             if (budgetConstrained)
             {
-                _optimizationLog.WarnNoBudget(missing.Aggregate(0, (acc, cur) => acc + cur.Value), true);
+                OptimizationLog.WarnNoBudget(missing.Aggregate(0, (acc, cur) => acc + cur.Value), true);
             }
 
             return !missing.Any();
@@ -610,7 +622,7 @@ namespace SelfAwareHR
         {
             if (!(TryTransferRedundant(ref redundant, ref anyChange) || TryFireRedundant(ref redundant, ref anyChange)))
             {
-                _optimizationLog.WarnOverstaffed(redundant.Count);
+                OptimizationLog.WarnOverstaffed(redundant.Count);
             }
         }
 
@@ -626,7 +638,7 @@ namespace SelfAwareHR
             if (OnlyDrawIfSpace && desks <= 0)
             {
                 var count = missing.Aggregate(0, (acc, cur) => cur.Value + acc);
-                _optimizationLog.WarnNoSpace(count, false);
+                OptimizationLog.WarnNoSpace(count, false);
                 return false;
             }
 
@@ -636,7 +648,7 @@ namespace SelfAwareHR
 
             if (candidates.IsNullOrEmpty())
             {
-                _optimizationLog.WarnNoApplicants(missing, false);
+                OptimizationLog.WarnNoApplicants(missing, false);
                 return false;
             }
 
@@ -661,13 +673,13 @@ namespace SelfAwareHR
 
             if (spaceConstrained)
             {
-                _optimizationLog.WarnNoSpace(assignments.Count, false);
+                OptimizationLog.WarnNoSpace(assignments.Count, false);
             }
 
             if (reassigned.Any())
             {
                 anyChange = true;
-                _optimizationLog.LogTransfer(reassigned);
+                OptimizationLog.LogTransfer(reassigned);
             }
 
             // planned reassignments that did not take place go back on the missing heap.
@@ -719,12 +731,12 @@ namespace SelfAwareHR
             if (released.Any())
             {
                 anyChange = true;
-                _optimizationLog.LogRelease(released, TeamToReleaseTo);
+                OptimizationLog.LogRelease(released, TeamToReleaseTo);
             }
 
             if (spaceConstrained && redundant.Any())
             {
-                _optimizationLog.WarnNoSpace(redundant.Count, false);
+                OptimizationLog.WarnNoSpace(redundant.Count, false);
             }
 
             return !redundant.Any();

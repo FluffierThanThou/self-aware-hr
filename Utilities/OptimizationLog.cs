@@ -3,19 +3,20 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SelfAwareHR.Utilities;
 
 namespace SelfAwareHR
 {
     public class OptimizationLog
     {
-        private Team          _team;
-        private StringBuilder log = new StringBuilder();
+        private SDateTime       _date;
+        private HashSet<string> _logged;
+        private Team            _team;
 
         public OptimizationLog(Team team)
         {
             _team = team;
+            _date = SDateTime.Now().Simplify();
         }
 
         private string CountEmployees(int count)
@@ -28,11 +29,22 @@ namespace SelfAwareHR
             return "employeeSingular".Loc(count);
         }
 
-        private void Log(string msg)
+        private void Log(string msg, bool allowRepeats = false)
         {
-            HUD.Instance.AutoLog.Log(msg);
             Utilities.Log.DebugOptimization(msg);
-            log.AppendLine(msg);
+
+            var today = SDateTime.Now().Simplify();
+            if (!allowRepeats && today != _date)
+            {
+                _date = today;
+                _logged.Clear();
+            }
+
+            if (allowRepeats || !_logged.Contains(msg))
+            {
+                HUD.Instance.AutoLog.Log(msg);
+                _logged.Add(msg);
+            }
         }
 
         public void LogFire(List<Actor> fired, float cost)
@@ -40,7 +52,7 @@ namespace SelfAwareHR
             Log("logFired".LocColorAll(
                     _team.Name,
                     CountEmployees(fired.Count),
-                    cost.Currency()));
+                    cost.Currency()), true);
         }
 
         public void LogHire(Dictionary<Actor, RoleSpecLevel> hired, float cost)
@@ -49,7 +61,7 @@ namespace SelfAwareHR
                     _team.Name,
                     CountEmployees(hired.Count),
                     hired.Values.Select(s => s.Spec).Distinct().ReadableList(),
-                    cost.Currency()));
+                    cost.Currency()), true);
         }
 
         public void LogRelease(List<Actor> released, Team to)
@@ -57,7 +69,7 @@ namespace SelfAwareHR
             Log("logReleased".LocColorAll(
                     _team.Name,
                     CountEmployees(released.Count),
-                    to.Name));
+                    to.Name), true);
         }
 
         public void LogTransfer(Dictionary<Actor, RoleSpecLevel> drawn)
@@ -65,12 +77,7 @@ namespace SelfAwareHR
             Log("logDrawn".LocColorAll(
                     _team.Name,
                     CountEmployees(drawn.Count),
-                    drawn.Values.Select(s => s.Spec).Distinct().ReadableList()));
-        }
-
-        public override string ToString()
-        {
-            return log.ToString();
+                    drawn.Values.Select(s => s.Spec).Distinct().ReadableList()), true);
         }
 
         public void WarnNoApplicants(Dictionary<RoleSpecLevel, int> missing, bool hire = true)
