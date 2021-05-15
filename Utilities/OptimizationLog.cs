@@ -10,7 +10,7 @@ namespace SelfAwareHR
     public class OptimizationLog
     {
         private SDateTime       _date;
-        private HashSet<string> _logged;
+        private HashSet<string> _logged = new HashSet<string>();
         private Team            _team;
 
         public OptimizationLog(Team team)

@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 80
+        "build": 82
     },
     "description": "smarter HR",
     "author": {
@@ -15,6 +15,15 @@
         "email": "fluffy.l2032@gmail.com"
     },
     "changelog": [
+        {
+            "date": "2021-05-15T13:35:36.000Z",
+            "message": "add free and total desk count to UI",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "0a5c3f50f823c91489639733651bcfea74a1e252"
+        },
         {
             "date": "2021-05-15T13:13:31.000Z",
             "message": "refactor automation logging to make it less spammy",
