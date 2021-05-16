@@ -344,21 +344,36 @@ namespace SelfAwareHR
             // of work per specialization level.
             foreach (var item in WorkItems(role))
             {
-                foreach (var task in item.Features)
+                if (item is SoftwareWorkItem softwareWorkItem)
                 {
-                    if (task.RelevantFor(role, forceFull))
+                    foreach (var task in softwareWorkItem.Features)
                     {
-                        var feature  = task.Feature;
-                        var work     = task.DevTime(role);
-                        var perLevel = specWork.GetOrAdd(feature.Spec, spec => new float[4]);
-                        Log.DebugSpecs(
-                            $"{role} :: {item.Name} :: {feature.Name} :: {feature.Spec} ({feature.Level}) :: {work}");
+                        if (task.RelevantFor(role, forceFull))
+                        {
+                            var feature  = task.Feature;
+                            var work     = task.DevTime(role);
+                            var perLevel = specWork.GetOrAdd(feature.Spec, spec => new float[4]);
+                            Log.DebugSpecs(
+                                $"{role} :: {softwareWorkItem.Name} :: {feature.Name} :: {feature.Spec} ({feature.Level}) :: {work}");
 
-                        totalWork               += work;
-                        perLevel[feature.Level] += work;
+                            totalWork               += work;
+                            perLevel[feature.Level] += work;
+                        }
                     }
                 }
+
+                if (item is SoftwarePort softwarePort)
+                {
+                    var work     = 1 + softwarePort.Product.DevTime / 2f;
+                    var perLevel = specWork.GetOrAdd("System", spec => new float[4]);
+                    Log.DebugSpecs(
+                        $"{role} :: PORT :: {softwarePort.Name} :: {softwarePort.Current.ActualProduct.Name} :: System (0) :: {work}");
+                    totalWork   += work;
+                    perLevel[0] += work; // porting is a zero-skilled job, but appears to normally done by systems devs.
+                }
             }
+
+            // todo: should we get the ideal team size per workItem first, and then combine?
 
             // get the total number of employees this team would
             // need, then calculate the number of employees per 
@@ -811,17 +826,36 @@ namespace SelfAwareHR
             }
         }
 
-        public IEnumerable<SoftwareWorkItem> WorkItems(Employee.EmployeeRole role)
+        public IEnumerable<WorkItem> WorkItems(Employee.EmployeeRole role)
         {
             if (role == Employee.EmployeeRole.Designer)
             {
-                return Team.WorkItems.OfType<DesignDocument>().Where(item => !item.AllDone(true));
+                foreach (var item in Team.WorkItems.OfType<DesignDocument>().Where(item => !item.AllDone(true)))
+                {
+                    yield return item;
+                }
+
+                yield break;
             }
 
-            return Team.WorkItems.OfType<SoftwareAlpha>()
-                       .Where(item => item.InBeta || !item.AllDone(false,
-                                                                   role == Employee.EmployeeRole.Artist,
-                                                                   role == Employee.EmployeeRole.Programmer));
+            if (role == Employee.EmployeeRole.Programmer || role == Employee.EmployeeRole.Artist)
+            {
+                foreach (var item in Team.WorkItems.OfType<SoftwareAlpha>().Where(
+                    item => item.InBeta || !item.AllDone(false, role == Employee.EmployeeRole.Artist,
+                                                         role        == Employee.EmployeeRole.Programmer)))
+                {
+                    yield return item;
+                }
+
+                if (role == Employee.EmployeeRole.Programmer)
+                {
+                    foreach (var item in Team.WorkItems.OfType<SoftwarePort>()
+                                             .Where(item => !item.Done && !item.Current.Waiting))
+                    {
+                        yield return item;
+                    }
+                }
+            }
         }
     }
 }
