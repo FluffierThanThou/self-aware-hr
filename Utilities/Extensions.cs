@@ -1,16 +1,30 @@
 ﻿// Copyright Karel Kroeze, 2021-2021.
 // SelfAwareHR/SelfAwareHR/Extensions.cs
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DevConsole;
 using UnityEngine;
+using Console = DevConsole.Console;
+using Object = UnityEngine.Object;
 
 namespace SelfAwareHR.Utilities
 {
     public static class Extensions
     {
+        public static Dictionary<T, float> AddUp<T>(this Dictionary<T, float> dict,
+                                                    Dictionary<T, float>      other,
+                                                    Func<float, float>        transform)
+        {
+            foreach (var pair in other)
+            {
+                dict.AddUp(pair.Key, transform(pair.Value));
+            }
+
+            return dict;
+        }
+
         public static void Destroy(this Object obj)
         {
             if (obj != null)
@@ -42,6 +56,15 @@ namespace SelfAwareHR.Utilities
         public static IEnumerable<string> FilterNullOrEmpty(this IEnumerable<string> list)
         {
             return list?.Where(e => !e.IsNullOrEmpty());
+        }
+
+        public static float FixChance(this SupportWork support, float offset, bool daysPerMonth)
+        {
+            var bugsSolved = support.StartBugs != 0
+                ? Mathf.Clamp01(support.TargetProduct.Bugs / (float) support.StartBugs)
+                : 0f;
+            var chance = offset + bugsSolved * (1f - offset);
+            return !daysPerMonth ? chance : chance / GameSettings.DaysPerMonth;
         }
 
         public static bool IsNullOrEmpty(this string str)

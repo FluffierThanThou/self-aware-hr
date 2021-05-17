@@ -6,7 +6,7 @@
     "version": {
         "major": 0,
         "minor": 0,
-        "build": 82
+        "build": 83
     },
     "description": "smarter HR",
     "author": {
@@ -15,6 +15,24 @@
         "email": "fluffy.l2032@gmail.com"
     },
     "changelog": [
+        {
+            "date": "2021-05-16T09:56:01.000Z",
+            "message": "add software port job",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "5c96029aa9ec8d1424ec174ca6a7fb764e133617"
+        },
+        {
+            "date": "2021-05-15T23:12:35.000Z",
+            "message": "fix nullref in automization logging",
+            "author": {
+                "name": "FluffierThanThou",
+                "email": "fluffy.l2032@gmail.com"
+            },
+            "hash": "a919e2c3aa29e089f27ccb26b04b13e805c01d77"
+        },
         {
             "date": "2021-05-15T13:35:36.000Z",
             "message": "add free and total desk count to UI",

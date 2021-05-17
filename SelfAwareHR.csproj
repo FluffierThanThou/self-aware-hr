@@ -89,6 +89,7 @@
     <Compile Include="Solver\FlowEdge.cs" />
     <Compile Include="Solver\FlowNetwork.cs" />
     <Compile Include="Solver\FordFulkerson.cs" />
+    <Compile Include="Utilities\SpecializationHelpers.cs" />
     <Compile Include="Utilities\SpecLevel.cs" />
     <Compile Include="Utilities\UIHelpers.cs" />
     <Compile Include="HarmonyPatches\AutomationWindow_Initialize.cs" />
